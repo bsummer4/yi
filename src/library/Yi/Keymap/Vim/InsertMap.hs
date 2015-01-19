@@ -169,24 +169,9 @@ printableAction evs = do
                 B.bdeleteB, B.deleteRegionB)
 
     let bufAction = case T.unpack . _unEv $ evs of
-          (c:[]) -> insertB' c
-          "<CR>" -> do
-              isOldLineEmpty <- isCurrentLineEmptyB
-              shouldTrimOldLine <- isCurrentLineAllWhiteSpaceB
-              if isOldLineEmpty
-              then newlineB
-              else if shouldTrimOldLine
-              then savingPointB $ do
-                  moveToSol
-                  newlineB
-              else do
-                  newlineB
-                  indentAsTheMostIndentedNeighborLineB
-              firstNonSpaceB
-          "<Tab>" -> do
-              if et
-              then insertN' . R.fromString $ replicate sw ' '
-              else insertB' '\t'
+          (c:[])       -> insertB' c
+          "<CR>"       -> newlineB
+          "<Tab>"      -> insertB' '\t'
           "<C-t>"      -> modifyIndentB (+ sw)
           "<C-d>"      -> modifyIndentB (max 0 . subtract sw)
           "<C-e>"      -> insertCharWithBelowB
