@@ -33,6 +33,7 @@ import Data.Monoid
 import qualified Data.Text as T
 import qualified Graphics.Vty as Vty
 import GHC.Conc (labelThread)
+import System.Exit
 
 import Yi.Buffer
 import Yi.Config
@@ -55,7 +56,7 @@ data Rendered = Rendered
 data FrontendState = FrontendState
     { fsVty :: Vty.Vty
     , fsConfig :: Config
-    , fsEndMain :: MVar ()
+    , fsEndMain :: MVar ExitCode
     , fsEndInputLoop :: MVar ()
     , fsEndRenderLoop :: MVar ()
     , fsDirty :: MVar ()
@@ -115,6 +116,7 @@ start config submitEvents submitActions editor = do
     return $! Common.dummyUI
         { Common.main = main fs
         , Common.end = end fs
+        , Common.die = errEnd fs
         , Common.refresh = requestRefresh fs
         , Common.userForceRefresh = Vty.refresh vty
         , Common.layout = layout fs
@@ -124,7 +126,8 @@ main :: FrontendState -> IO ()
 main fs = do
     tid <- myThreadId
     labelThread tid "VtyMain"
-    takeMVar (fsEndMain fs)
+    code <- takeMVar (fsEndMain fs)
+    exitWith code
 
 layout :: FrontendState -> Editor -> IO Editor
 layout fs e = do
@@ -133,13 +136,19 @@ layout fs e = do
     return e'
 
 end :: FrontendState -> Bool -> IO ()
-end fs mustQuit = do
+end = endWithCode ExitSuccess
+
+errEnd :: FrontendState -> Bool -> IO ()
+errEnd = endWithCode (ExitFailure 1)
+
+endWithCode :: ExitCode -> FrontendState -> Bool -> IO ()
+endWithCode exitCode fs mustQuit = do
     -- setTerminalAttributes stdInput (oAttrs ui) Immediately
     void $ tryPutMVar (fsEndInputLoop fs) ()
     void $ tryPutMVar (fsEndRenderLoop fs) ()
     Vty.shutdown (fsVty fs)
     when mustQuit $
-        void (tryPutMVar (fsEndMain fs) ())
+        void (tryPutMVar (fsEndMain fs) exitCode)
 
 requestRefresh :: FrontendState -> Editor -> IO ()
 requestRefresh fs e = do

@@ -46,10 +46,11 @@ should wrap GUI updates in @postGUIAsync@.
 data UI e = UI
     { main                  :: IO ()               -- ^ Main loop
     , end                   :: Bool -> IO ()       -- ^ Clean up, and also terminate if given 'true'
+    , die                   :: Bool -> IO ()       -- ^ Exit with an error code.
     , suspend               :: IO ()               -- ^ Suspend (or minimize) the program
-    , refresh               :: e -> IO ()     -- ^ Refresh the UI with the given state
+    , refresh               :: e -> IO ()          -- ^ Refresh the UI with the given state
     , userForceRefresh      :: IO ()               -- ^ User force-refresh (in case the screen has been messed up from outside)
-    , layout                :: e -> IO e -- ^ Set window width and height
+    , layout                :: e -> IO e           -- ^ Set window width and height
     , reloadProject         :: FilePath -> IO ()   -- ^ Reload cabal project views
     }
 
@@ -57,6 +58,7 @@ dummyUI :: UI e
 dummyUI = UI
   { main             = return ()
   , end              = const (return ())
+  , die              = const (return ())
   , suspend          = return ()
   , refresh          = const (return ())
   , userForceRefresh = return ()

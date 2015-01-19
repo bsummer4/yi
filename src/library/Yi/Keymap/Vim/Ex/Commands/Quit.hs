@@ -17,13 +17,14 @@ module Yi.Keymap.Vim.Ex.Commands.Quit (parse) where
 import           Control.Applicative
 import           Control.Lens
 import           Control.Monad
+import           Control.Monad.Base (liftBase)
 import           Data.Foldable (find)
 import qualified Data.List.PointedList.Circular as PL
 import           Data.Monoid
 import qualified Data.Text as T
 import qualified Text.ParserCombinators.Parsec as P
 import           Yi.Buffer
-import           Yi.Core (quitEditor, errorEditor, closeWindow)
+import           Yi.Core (quitEditor, quitEditorWithError, errorEditor, closeWindow)
 import           Yi.Editor
 import           Yi.File
 import           Yi.Keymap
@@ -33,6 +34,7 @@ import           Yi.Keymap.Vim.Ex.Types
 import           Yi.Monad
 import           Yi.String (showT)
 import           Yi.Window (bufkey)
+import           System.Exit
 
 
 parse :: EventString -> Maybe ExCommand
@@ -41,6 +43,9 @@ parse = Common.parse $ P.choice
         void $ P.try ( P.string "xit") <|> P.string "x"
         bangs <- P.many (P.char '!')
         return (quit True (not $ null bangs) False)
+    , do
+        void $ P.try (P.string "cq")
+        return quitWithError
     , do
         ws <- P.many (P.char 'w')
         void $ P.try ( P.string "quit") <|> P.string "q"
@@ -57,6 +62,12 @@ quit w f a = Common.impureExCommand {
               `T.append` (if f then "!" else "")
   , cmdAction = YiA $ action w f a
   }
+
+quitWithError :: ExCommand
+quitWithError = Common.impureExCommand { cmdShow = "cq"
+                                       , cmdAction = YiA errQuit
+                                       }
+  where errQuit = quitEditorWithError
 
 action :: Bool -> Bool -> Bool -> YiM ()
 action False False False = quitWindowE

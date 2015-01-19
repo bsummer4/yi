@@ -21,6 +21,7 @@ module Yi.Core
   -- * Construction and destruction
     startEditor
   , quitEditor          -- :: YiM ()
+  , quitEditorWithError -- :: YiM ()
 
   -- * User interaction
   , refreshEditor       -- :: YiM ()
@@ -267,6 +268,12 @@ showEvs = T.unwords . fmap (T.pack . prettyEvent)
 
 -- ---------------------------------------------------------------------
 -- Meta operations
+
+quitEditorWithError :: YiM ()
+quitEditorWithError = do
+    savePersistentState
+    onYiVar $ terminateSubprocesses (const True)
+    withUI (`UI.die` True)
 
 -- | Quit.
 quitEditor :: YiM ()
