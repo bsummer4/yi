@@ -130,8 +130,8 @@ exclusiveMotions = fmap withDefaultCount
     , ("|", False, \n -> moveToSol >> moveXorEol (n - 1))
     , ("(", True, moveBackwardB unitSentence)
     , (")", True, moveForwardB unitSentence)
-    , ("{", False, moveBackwardB unitParagraph)
-    , ("}", False, repeat(moveB unitParagraph Forward))
+    , ("{", False, repeat $ moveB unitParagraph Backward >> leftB)
+    , ("}", False, repeat $ moveB unitParagraph Forward >> rightB)
     ]
 
 -- Inclusive motions which treat no count as being the same as a count of 1.
