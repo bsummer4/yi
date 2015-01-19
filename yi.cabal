@@ -359,6 +359,13 @@ library
     System.CanonicalizePath,
     System.FriendlyPath
 
+executable fj
+  hs-source-dirs:    src/executable
+  main-is:           Fj.hs
+  ghc-options:       -threaded
+  build-depends:     base >=4.7 && <4.8, yi-rope, yi
+  default-language:  Haskell2010
+
 executable yi
   hs-source-dirs: src/executable
   default-language: Haskell2010
