@@ -215,16 +215,12 @@ continuingBindings = fmap (mkStringBindingE Normal Continue)
     , ("I", withCurrentBuffer firstNonSpaceB, switchMode $ Insert 'I')
     , ("a", withCurrentBuffer rightB, switchMode $ Insert 'a')
     , ("A", withCurrentBuffer moveToEol, switchMode $ Insert 'A')
-    , ("o", withCurrentBuffer $ do
-          moveToEol
-          newlineB
-          indentAsTheMostIndentedNeighborLineB
+    , ("o", withCurrentBuffer $ do moveToEol
+                                   newlineB
         , switchMode $ Insert 'o')
-    , ("O", withCurrentBuffer $ do
-                     moveToSol
-                     newlineB
-                     leftB
-                     indentAsNextB
+    , ("O", withCurrentBuffer $ do moveToSol
+                                   newlineB
+                                   leftB
         , switchMode $ Insert 'O')
 
     -- Transition to visual
